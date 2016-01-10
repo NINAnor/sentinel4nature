@@ -32,7 +32,7 @@ def CtoF(float):
 
 #Conect to PostGIS using psycopg2 module
 try:
-    conn = psycopg2.connect("dbname='gisdata' user='stefan' host='ninsrv16' password='horoow1E'")
+    conn = psycopg2.connect("dbname='gisdata' user='stefan' host='ninsrv16' password='**********'")
     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 except:
     #logging.info("Unable to connect to the database")
