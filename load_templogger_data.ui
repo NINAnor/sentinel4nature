@@ -49,10 +49,15 @@
     <rect>
      <x>20</x>
      <y>280</y>
-     <width>73</width>
+     <width>131</width>
      <height>22</height>
     </rect>
    </property>
+   <item>
+    <property name="text">
+     <string>Nina Eide`s logger type</string>
+    </property>
+   </item>
   </widget>
   <widget class="QComboBox" name="comboBox_2">
    <property name="geometry">
@@ -67,7 +72,7 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>110</x>
+     <x>160</x>
      <y>280</y>
      <width>81</width>
      <height>16</height>
@@ -106,9 +111,9 @@
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>280</x>
      <y>190</y>
-     <width>120</width>
+     <width>181</width>
      <height>111</height>
     </rect>
    </property>
@@ -120,12 +125,15 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>95</width>
+      <width>161</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
      <string>Create mission from metadata</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QRadioButton" name="radioButton_2">
@@ -133,7 +141,7 @@
      <rect>
       <x>10</x>
       <y>50</y>
-      <width>95</width>
+      <width>161</width>
       <height>20</height>
      </rect>
     </property>
@@ -146,7 +154,7 @@
      <rect>
       <x>10</x>
       <y>80</y>
-      <width>95</width>
+      <width>151</width>
       <height>20</height>
      </rect>
     </property>
