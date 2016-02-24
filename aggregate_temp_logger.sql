@@ -1,5 +1,6 @@
 ﻿-- Aggregate statistics on temperature logger data
 
+-- Aggregate by day
 DROP TABLE IF EXISTS sentinel4nature."temploggerData_days";
 CREATE TABLE sentinel4nature."temploggerData_days" AS
 SELECT 
@@ -36,7 +37,6 @@ locality
 , stddev_samp(dew_point_f) AS dew_point_f_days_stddev
 , var_samp(dew_point_f) AS dew_point_f_days_var
   FROM sentinel4nature."temploggerData"
--- WHERE locality = 'B1 0cm'
 GROUP BY 
 locality
 , date_trunc('day', date)::date
@@ -80,7 +80,6 @@ locality
 , stddev_samp(dew_point_f) AS dew_point_f_months_stddev
 , var_samp(dew_point_f) AS dew_point_f_months_var
   FROM sentinel4nature."temploggerData"
--- WHERE locality = 'B1 0cm'
 GROUP BY 
 locality
 , date_trunc('month', date)::date
@@ -124,14 +123,57 @@ locality
 , stddev_samp(dew_point_f) AS dew_point_f_years_stddev
 , var_samp(dew_point_f) AS dew_point_f_years_var
   FROM sentinel4nature."temploggerData"
--- WHERE locality = 'B1 0cm'
 GROUP BY 
 locality
 , date_trunc('year', date)::date
 ORDER BY locality
 , date_trunc('year', date)::date;
 
--- SELECT locality, date_trunc('year', date) AS year, count(date) AS snow_days 
--- FROM sentinel4nature."temploggerData_days" where temperature_c_var < 1 AND temperature_c_max < 1
--- GROUP BY locality, date_trunc('year', date)
--- ORDER BY locality, date_trunc('year', date);
+DROP TABLE IF EXISTS sentinel4nature."temploggerData_snowCover";
+CREATE TABLE sentinel4nature."temploggerData_snowCover" AS
+SELECT locality, date, snowcover FROM (SELECT * FROM 
+(SELECT locality, date, CAST('snow' AS text) AS snowcover, CAST(2 AS smallint) AS order_f FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1) AS a 
+UNION ALL 
+(SELECT locality, date, CAST('snow on' AS text) AS snowcover, CAST(1 AS smallint) AS order_f FROM 
+(SELECT locality, date, date AS snow_day, temperature_c_days_var AS temperature_c_days_var_before FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1) AS c
+NATURAL INNER JOIN 
+(SELECT locality, date + 1 AS date, date AS snow_free_day_before, temperature_c_days_var AS temperature_c_days_var_current FROM sentinel4nature."temploggerData_days" WHERE temperature_c_days_var >= 1) AS b)
+UNION ALL 
+(SELECT locality, date, CAST('snow off' AS text) AS snowcover, CAST(3 AS smallint) AS order_f FROM 
+(SELECT locality, date, date AS snow_day, temperature_c_days_var AS temperature_c_days_var_before FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1) AS c
+NATURAL INNER JOIN 
+(SELECT locality, date - 1 AS date, date AS snow_free_day_before, temperature_c_days_var AS temperature_c_days_var_current FROM sentinel4nature."temploggerData_days" WHERE temperature_c_days_var >= 1) AS b)
+ORDER BY locality, date, order_f) AS x
+
+-- Extract days with snow cover
+SELECT locality, date_trunc('year', date) AS year, count(date) AS snow_days 
+FROM sentinel4nature."temploggerData_days" where temperature_c_var < 1 AND temperature_c_max < 1
+GROUP BY locality, date_trunc('year', date)
+ORDER BY locality, date_trunc('year', date);
+
+-- Extract snow-on and snow-off days
+SELECT * FROM (SELECT locality, date, CAST('snow' AS text) AS snowcover FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1 LIMIT 10) AS a 
+UNION ALL 
+(SELECT locality, date, CAST('snow on' AS text) AS snowcover FROM 
+(SELECT locality, date, date AS snow_day, temperature_c_days_var AS temperature_c_days_var_before FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1) AS c
+NATURAL INNER JOIN 
+(SELECT locality, date + 1 AS date, date AS snow_free_day_before, temperature_c_days_var AS temperature_c_days_var_current FROM sentinel4nature."temploggerData_days" WHERE temperature_c_days_var >= 1) AS b LIMIT 10)
+UNION ALL 
+(SELECT locality, date, CAST('snow off' AS text) AS snowcover FROM 
+(SELECT locality, date, date AS snow_day, temperature_c_days_var AS temperature_c_days_var_before FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1) AS c
+NATURAL INNER JOIN 
+(SELECT locality, date - 1 AS date, date AS snow_free_day_before, temperature_c_days_var AS temperature_c_days_var_current FROM sentinel4nature."temploggerData_days" WHERE temperature_c_days_var >= 1) AS b LIMIT 10)
+-- ON b.locality = c.locality AND c.date = b.date -- LIMIT 10
+
+SELECT locality, date, 
+CASE WHEN temperature_c_var < 1 AND temperature_c_max < 1 AND date - 1 THEN True
+ELSE False
+END AS snow_on_day
+SELECT * FROM
+(SELECT locality, date, 'snow' as snowcover FROM sentinel4nature."temploggerData_days" where temperature_c_days_var < 1 AND temperature_c_days_max < 1) AS c
+LEFT JOIN (SELECT locality, date, True AS snow_on FROM sentinel4nature."temploggerData_days" where temperature_c_days_var >= 1 AND temperature_c_days_max >= 1) AS b WHERE b.locality = c.locality AND c.date = ( b.date - 1 )
+LEFT JOIN (SELECT locality, date, True AS snow_off FROM sentinel4nature."temploggerData_days" where temperature_c_days_var >= 1 AND temperature_c_days_max >= 1) AS a WHERE a.locality = c.locality AND c.date = ( a.date - +1 )
+--GROUP BY locality, date_trunc('year', date)
+ORDER BY locality, date;
+
+
