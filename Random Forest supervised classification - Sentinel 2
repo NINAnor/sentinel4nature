@@ -1,0 +1,198 @@
+###Cross-scale study 
+###Oslofjord study site
+### Sentinel4Nature project
+
+##Set up workspace
+#Libraries
+library(sp)
+library(rgdal)
+library(raster)
+library(maptools)
+
+#Set working directory
+setwd("C:/...)
+list.files(pattern = glob2rx('*.tif'), full.names=TRUE)
+
+##Prepare raster
+red <- raster("./T32VNM_B04.tif")
+NIR <- raster("./T32VNM_B08.tif")
+blue <- raster("./T32VNM_B02.tif")
+green <- raster("./T32VNM_B03.tif")
+
+#Crop each band
+c <- readOGR(dsn="of_studyarea_100m.shp", layer="of_studyarea_100m")
+cRed <- crop(red, c)
+cNIR <- crop(NIR, c)
+cBlue <- crop(blue, c)
+cGreen <- crop(green, c)
+
+#Check plot
+plot(cRed)
+plot(cNIR)
+plot(cBlue)
+plot(cGreen)
+
+#Stack and write raster
+s2 <- brick(cRed, cNIR, cBlue, cGreen)
+writeRaster(s2, "s2.tif", datatype = "INT2S", overwrite = TRUE, bylayer =FALSE)
+
+#Check raster
+plotRGB(s2,r=3, g=2, b=1, stretch="Lin")
+extent(s2)
+raster(s2)
+hist(s2)
+pairs(s2)
+
+##Raster classification
+#NDVI
+cNDVI <- (cNIR-cRed)/(cNIR+cRed)
+
+#Project raster as UTM 33N (http://spatialreference.org/ref/epsg/25833/proj4/)
+utm33 <- "+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs "
+NDVI <- projectRaster(cNDVI, crs=utm33)
+s2_proj <- projectRaster(s2, crs=utm33)
+
+#Check
+raster(NDVI)
+plot(NDVI)
+raster(s2_proj)
+plot(s2_proj)
+
+#Combine NDVI and raster brick
+covs <- addLayer(s2_proj, NDVI)
+plot(covs)
+names(covs) <- c("band4", "band8", "band2", "band3", "NDVI")
+plot(covs)
+
+###Prepare training classes
+##Create training classes using NDVI
+#Add training classes
+trainingClasses <- readOGR(dsn="of_training_classes.shp", layer="of_training_classes")
+summary(trainingClasses)
+tClasses <- spTransform(trainingClasses, CRS("+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs"))
+summary(tClasses)
+
+#Add shapefile to raster plot
+plot(NDVI)
+plot(tClasses, add=TRUE)
+tClasses@data
+
+#Convert class to numeric value
+tClasses@data$descriptio
+str(tClasses@data$descriptio)
+tClasses@data$code <- as.numeric(tClasses@data$descriptio)
+tClasses@data
+
+#Rasterize
+classes <- rasterize(tClasses, NDVI, field='code')
+colors <- c("dark green", "light green", "orange", "gray", "dark blue")
+plot(classes, col=colors, legend=FALSE)
+legend("bottomleft", legend=c("forest", "grass", "house", "rock", "water"), fill=colors, bg="white")
+
+#Mask image
+covmasked <- mask(covs, classes)
+plot(covmasked)
+
+#Combine classes layer with input training dataset
+names(classes) <- "class"
+trainingbrick <- addLayer(covmasked, classes)
+plot(trainingbrick)
+
+#Extract all values into a matrix
+valuetable <- getValues(trainingbrick)
+valuetable <- na.omit(valuetable)
+valuetable <- as.data.frame(valuetable)
+head(valuetable, n=10)
+tail(valuetable, n=10)
+
+#Visualize distribution of covariates
+valuetable$class <- factor(valuetable$class, levels = c(1:5))
+val_forest <- subset(valuetable, class == 1)
+val_grass  <- subset(valuetable, class == 2)
+val_rock  <- subset(valuetable, class == 4)
+val_house  <- subset(valuetable, class == 3)
+val_water  <- subset(valuetable, class == 5)
+
+#Plot NDVI values
+par(mfrow = c(5,1))
+hist(val_forest$NDVI, main ="forest", xlab="NDVI", col= "dark green")
+hist(val_grass$NDVI, main ="grass", xlab="NDVI", col= "light green")
+hist(val_rock$NDVI, main ="rock", xlab="NDVI", col= "gray")
+hist(val_house$NDVI, main ="house", xlab="NDVI", col= "orange")
+hist(val_water$NDVI, main ="water", xlab="NDVI", col= "dark blue")
+
+#Plot bands to see overlap in band 3 and 4
+par(mfrow = c(1,1))
+plot(band4 ~ band3, data = val_forest, pch="o", col="dark green")
+points(band4 ~ band3, data = val_grass, pch="o", col="light green")
+points(band4 ~ band3, data = val_rock, pch="o", col="gray")
+points(band4  ~band3, data = val_house, pch="o", col="orange")
+points(band4 ~ band3, data = val_water, pch="o", col="dark blue")
+legend("topright", legend=c("forest", "grass", "rock", "house", "water"), fill= c("dark green", "light green", "gray", "orange", "dark blue"), bg="white")
+
+#Plot bands to see overlap in band 2 and 4
+par(mfrow = c(1,1))
+plot(band4 ~ band2, data = val_forest, pch="o", col="dark green")
+points(band4 ~ band2, data = val_grass, pch="o", col="light green")
+points(band4 ~ band2, data = val_rock, pch="o", col="gray")
+points(band4  ~band2, data = val_house, pch="o", col="orange")
+points(band4 ~ band2, data = val_water, pch="o", col="dark blue")
+legend("topright", legend=c("forest", "grass", "rock", "house", "water"), fill= c("dark green", "light green", "gray", "orange", "dark blue"), bg="white")
+
+#Plot bands to see overlap in band 4 and NDVI
+par(mfrow = c(1,1))
+plot(band4 ~ NDVI, data = val_forest, pch="o", col="dark green")
+points(band4 ~ NDVI, data = val_grass, pch="o", col="light green")
+points(band4 ~ NDVI, data = val_rock, pch="o", col="gray")
+points(band4  ~ NDVI, data = val_house, pch="o", col="orange")
+points(band4 ~ NDVI, data = val_water, pch="o", col="dark blue")
+legend("topright", legend=c("forest", "grass", "rock", "house", "water"), fill= c("dark green", "light green", "gray", "orange", "dark blue"), bg="white")
+
+#Plot bands to see overlap in band 8 and NDVI
+par(mfrow = c(1,1))
+plot(band8 ~ NDVI, data = val_forest, pch="o", col="dark green")
+points(band8 ~ NDVI, data = val_grass, pch="o", col="light green")
+points(band8 ~ NDVI, data = val_rock, pch="o", col="gray")
+points(band8  ~ NDVI, data = val_house, pch="o", col="orange")
+points(band8 ~ NDVI, data = val_water, pch="o", col="dark blue")
+legend("topright", legend=c("forest", "grass", "rock", "house", "water"), fill= c("dark green", "light green", "gray", "orange", "dark blue"), bg="white")
+
+###Supervised classification: Random Forest
+#Set library
+library(randomForest)
+
+#Check data
+summary(valuetable)
+head(valuetable, n=20)
+
+#Run model
+modelRF <- randomForest(x=valuetable[ ,c(1:5)], y=valuetable$class, importance=TRUE)
+
+#Inspect model
+modelRF
+class(modelRF)
+str(modelRF)
+names(modelRF)
+
+#Confusion matrix
+colnames(modelRF$confusion) <- c("forest", "grass", "houses", "rock", "water", "class.error")
+rownames(modelRF$confusion) <- c("forest", "grass", "houses", "rock", "water")
+modelRF$confusion
+
+#Statistical importance of each of the covariates
+varImpPlot(modelRF)
+
+#Check names
+names(covs)
+names(valuetable)
+
+#Predict land cover
+predLC <- predict(covs, model=modelRF, na.rm=TRUE)
+
+#Plot the results
+cols <- c("dark green", "light green", "gray", "orange", "dark blue")
+plot(predLC, col=cols, legend=FALSE)
+legend("bottomright", legend=c("forest", "grass", "houses", "rock", "water"), fill=cols, bg="white")
+
+#Write raster
+writeRaster(predLC, "Landcover.tif", datatype = "INT2S", overwrite = TRUE, bylayer =FALSE)
