@@ -1,5 +1,10 @@
 ﻿-- Aggregate statistics on temperature logger data
 
+-- Drop views that depend on tables that should be recreated
+DROP VIEW IF EXISTS sentinel4nature.temperaturelogger_coredata_days;
+DROP VIEW IF EXISTS sentinel4nature.temperaturelogger_coredata_months;
+DROP VIEW IF EXISTS sentinel4nature.temperaturelogger_coredata_years;
+
 -- Aggregate by day
 DROP TABLE IF EXISTS sentinel4nature."temploggerData_days";
 CREATE TABLE sentinel4nature."temploggerData_days" AS
@@ -176,4 +181,34 @@ LEFT JOIN (SELECT locality, date, True AS snow_off FROM sentinel4nature."templog
 --GROUP BY locality, date_trunc('year', date)
 ORDER BY locality, date;
 
+-- Create views
+CREATE OR REPLACE VIEW sentinel4nature.temperaturelogger_coredata_days AS SELECT locality, date, temperature_c_days_count, temperature_c_days_max, 
+       temperature_c_days_avg, temperature_c_days_min, temperature_c_days_stddev, 
+       temperature_c_days_var, humidity_perc_days_count, humidity_perc_days_max, 
+       humidity_perc_days_avg, humidity_perc_days_min, humidity_perc_days_stddev, 
+       humidity_perc_days_var, dew_point_c_days_count, dew_point_c_days_max, 
+       dew_point_c_days_avg, dew_point_c_days_min, dew_point_c_days_stddev, 
+       dew_point_c_days_var
+  FROM sentinel4nature."temploggerData_days" NATURAL LEFT JOIN 
+sentinel4nature.temperaturelogger_locations;
+
+CREATE OR REPLACE VIEW sentinel4nature.temperaturelogger_coredata_months AS SELECT locality, date, number_of_days, temperature_c_months_count, temperature_c_months_max, 
+       temperature_c_months_avg, temperature_c_months_min, temperature_c_months_stddev, 
+       temperature_c_months_var, humidity_perc_months_count, humidity_perc_months_max, 
+       humidity_perc_months_avg, humidity_perc_months_min, humidity_perc_months_stddev, 
+       humidity_perc_months_var, dew_point_c_months_count, dew_point_c_months_max, 
+       dew_point_c_months_avg, dew_point_c_months_min, dew_point_c_months_stddev, 
+       dew_point_c_months_var
+  FROM sentinel4nature."temploggerData_months" NATURAL LEFT JOIN 
+sentinel4nature.temperaturelogger_locations;
+
+CREATE OR REPLACE VIEW sentinel4nature.temperaturelogger_coredata_years AS SELECT locality, date, array_length AS number_of_days, temperature_c_years_count, temperature_c_years_max, 
+       temperature_c_years_avg, temperature_c_years_min, temperature_c_years_stddev, 
+       temperature_c_years_var, humidity_perc_years_count, humidity_perc_years_max, 
+       humidity_perc_years_avg, humidity_perc_years_min, humidity_perc_years_stddev, 
+       humidity_perc_years_var, dew_point_c_years_count, dew_point_c_years_max, 
+       dew_point_c_years_avg, dew_point_c_years_min, dew_point_c_years_stddev, 
+       dew_point_c_years_var
+  FROM sentinel4nature."temploggerData_years" NATURAL LEFT JOIN 
+sentinel4nature.temperaturelogger_locations;
 
