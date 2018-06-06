@@ -1,5 +1,5 @@
 ###Classification of Oslofjord study sites
-###Authors: Jacob and Stefan
+###Authors: Jacob xxx, Stefan Blumentrath
 
 ###Import input data
 v.in.ogr input=$HOME/Avd15GIS/Prosjekter/Sentinel4Nature/Forest_cover/Oslofjord/5_Malmøya/grid_30x30_gressholmen_rambergoya.sqlite layer=grid_30x30_malmoya output=grid_30x30_malmoya geometry=GEOMETRY --overwrite -o
