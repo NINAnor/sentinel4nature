@@ -1,0 +1,10 @@
+- shall I replace paths in code with something more general?
+- where do the codes in git/sentinel4nature belong to?
+- who is Jakob in authors of git/sentinel4nature/Tree canopy cover/Classification of Oslofjord study sites
+- preprocessing Sentinel-1 - which file to use - PREPROCESSING/sentinel_1_pp.sh,
+                                                 PREPROCESSING/sentinel_1_pp_ningrass.sh,
+                                                 Sentinel_1/sentinel_1_pp_ningrass.sh,
+                                                 PREPROCESSING/sentinel_1_pp_ningrass_parallel.sh?
+
+TODO
+- replace file names inside code in GBRT
