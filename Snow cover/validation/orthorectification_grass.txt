@@ -1,0 +1,47 @@
+: '
+NAME:    Orthorectification of wildlife camera traps imagery
+
+AUTHOR(S): Zofie Cimburova < zofie.cimburova AT nina.no>
+
+PURPOSE:   Orthorectification of imagery from wildlife camera traps .
+           Performed in GRASS using i.ortho.rectify module.
+           All data are stored in attached grass location.
+'
+
+: '
+To Dos:    GCPs and camera parameters need to be measured precisely to avoid distortion of resulting images.
+'
+
+# TARGET LOCATION
+# 0. Import data
+r.in.gdal input=ELEVATION.tif output=ELEVATION
+
+
+# SOURCE LOCATION
+# 1. Create imagery group
+i.group group=IMG_0824@PERMANENT input=IMG_0824.blue@PERMANENT,IMG_0824.green@PERMANENT,IMG_0824.red@PERMANENT
+
+# 2. Select target location
+i.ortho.target group=IMG_0824@PERMANENT target_location=ETRS_33N mapset_location=PERMANENT
+
+# 3. Select target elevation model
+i.ortho.elev group=IMG_0824@PERMANENT location=ETRS_33N mapset=PERMANENT elevation=ELEVATION
+
+# 4. Create camera file
+i.ortho.camera group=IMG_0824@PERMANENT camera=ReconyxPC800 name=ReconyxPC800 id=ReconyxPC800 clf=8.5 fid=-3.2,0,0,-2.4,3.2,0,0,2.4
+
+# 5. Compute image-to-photo transformation
+g.gui.photo2image group=IMG_0824@PERMANENT raster=IMG_0824.blue@PERMANENT camera=ReconyxPC800 order=1 extension=_ip2i_out
+
+# 6. Initialize parameters of camera
+i.ortho.init group=IMG_0824@PERMANENT xc=215258.35 yc=6911444.02 zc=1104.46 xc_sd=1 yc_sd=1 zc_sd=1 omega=0 phi=80.3 kappa=165 omega_sd=1 phi_sd=1.2 kappa_sd=1
+
+
+# TARGET LOCATION
+# 7. Compute orthorectification parameters from ground control points
+# manually
+
+
+# SOURCE LOCATION
+# 8. Orthorectify
+i.ortho.rectify group=IMG_0824@PERMANENT input=IMG_0824.blue@PERMANENT extension=_rectify
