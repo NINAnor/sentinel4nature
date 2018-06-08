@@ -1,0 +1,4 @@
+- shall I replace paths in code with something more general?
+
+TODO
+- replace file names inside code in GBRT
