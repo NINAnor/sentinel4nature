@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/bin/bash
 
 : '
@@ -19,6 +20,12 @@ To Dos:     AOD shall be more precisely estimated
                 aot_dates=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Palgrunden&year=2017&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=10&if_no_html=1" | grep Palgrunden, |cut -f2 -d",")
             	aot_values=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Palgrunden&year=2017&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=10&if_no_html=1" | grep Palgrunden, |cut -f15 -d",")
 '
+=======
+# Preprocessing of Sentinel-2 data
+# Authors: Zofie Cimburova, Stefan Blumentrath
+
+#!/bin/bash
+>>>>>>> 3cad8916bf2340cf38653a2e004d4431a3b7df60
 
 # ########################## #
 # CREATE DIRECTORY STRUCTURE #
@@ -326,6 +333,16 @@ do
             esac
 
             # 5. Aerosol optical depth at 550nm
+<<<<<<< HEAD
+=======
+            # TODO - AOD shall be more precisely estimated
+            #        e.g. using interpolation / averiging of AERONET measurements
+            #		 https://www.rtwilson.com/academic/WilsonMiltonNield_2015_VisAOT.pdf
+            #		 aot=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Birkenes&year=2014&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=20&if_no_html=1")
+            #		 aot_dates=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Palgrunden&year=2017&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=10&if_no_html=1" | grep Palgrunden, |cut -f2 -d",")
+            #		 aot_values=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Palgrunden&year=2017&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=10&if_no_html=1" | grep Palgrunden, |cut -f15 -d",") 
+
+>>>>>>> 3cad8916bf2340cf38653a2e004d4431a3b7df60
             aod_6s=0.1 # estimated AOD, constant
 
             # 6. Mean target elevation above sea level in [-km]
