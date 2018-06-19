@@ -1,8 +1,7 @@
-<<<<<<< HEAD
 #!/bin/bash
 
 : '
-NAME:    Preprocessing of Sentinel-1 imagery
+NAME:    Preprocessing of Sentinel-2 imagery
 
 AUTHOR(S): Zofie Cimburova < zofie.cimburova AT nina.no>
            Stefan Blumentrath < stefan.blumentrath AT nina.no>
@@ -20,12 +19,7 @@ To Dos:     AOD shall be more precisely estimated
                 aot_dates=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Palgrunden&year=2017&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=10&if_no_html=1" | grep Palgrunden, |cut -f2 -d",")
             	aot_values=$(curl -s -k "https://aeronet.gsfc.nasa.gov/cgi-bin/print_web_data_v3?site=Palgrunden&year=2017&month=6&day=1&year2=2017&month2=9&day2=30&AOD15=1&AVG=10&if_no_html=1" | grep Palgrunden, |cut -f15 -d",")
 '
-=======
-# Preprocessing of Sentinel-2 data
-# Authors: Zofie Cimburova, Stefan Blumentrath
 
-#!/bin/bash
->>>>>>> 3cad8916bf2340cf38653a2e004d4431a3b7df60
 
 # ########################## #
 # CREATE DIRECTORY STRUCTURE #
